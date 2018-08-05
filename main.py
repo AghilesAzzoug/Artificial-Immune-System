@@ -3,8 +3,9 @@ import math
 import copy
 
 ARRAY_SIZE = 2
-MUTATE_RATE = 0.8
+MUTATE_RATE = 0.5
 TARGET_NUMBER = 4
+CLONE_RATE = 20
 
 
 class AIRS:
@@ -19,8 +20,10 @@ class AIRS:
         _MAX_DISTANCE = 2
         d = 0
         for i, j in zip(array1, array2):
-            d += (i - j) ** 2
-        return math.sqrt(d) / _MAX_DISTANCE
+            # d += (i - j) ** 2
+            d += abs(i - j)
+        # return math.sqrt(d) / _MAX_DISTANCE
+        return d / _MAX_DISTANCE
 
     def stimulate(self, pattern):
 
@@ -37,6 +40,11 @@ class AIRS:
                 if _c.affinity > best_cell.affinity:
                     best_cell = _c
         return best_cell
+
+    def classify_pattern(self, pattern):
+        self.stimulate(pattern=pattern)
+        _best_cell = self.get_most_stimulated_cell(pattern=pattern)
+        return _best_cell.target
 
 
 class Pool:
@@ -73,15 +81,23 @@ class Cell:
 
     # todo : maybe (have to) change this
     def mutate(self):
+        _newArray = []
         for idx in range(len(self.array)):
             if random.random() < self.affinity * MUTATE_RATE:
-                self.array[idx] = random.random() * (max(self.array) - min(self.array)) + min(self.array)
+                _newArray.append(random.random() * (max(self.array) - min(self.array)) + min(self.array))
+            else:
+                _newArray.append(self.array[idx])
+        return Cell(array=_newArray, target=self.target)
+
+    def get_clones(self):
+        num_clones = int(CLONE_RATE * self.affinity) + 1
+        clones = [Cell(array=self.array, target=self.target) for _ in range(num_clones)]
+
+        return clones
 
 
-def train_AIRS():
-    airs = AIRS(cells_number=10)
-
-    for g in range(500):
+def train_AIRS(airs):
+    for g in range(2000):
         vector = [random.random() for _ in range(2)]
         target = -1
 
@@ -95,8 +111,10 @@ def train_AIRS():
             target = 3
 
         most = airs.get_most_stimulated_cell(vector)
+        x = airs.classify_pattern(vector)
         print("Affinity : " + str(most.affinity))
         print("Best : " + str(most))
+        print("X : " + str(x))
         print("Best target : " + str(most.target))
         print("Vector : " + str(vector))
         print("Real target : " + str(target))
@@ -110,6 +128,42 @@ def train_AIRS():
                     c.mutate()
         print("\n")
 
+        print("[+] Accuracy : " + str(test_AIRS(airs)))
+
+
+def test_AIRS(airs):
+    correct = 0
+    number = 100
+    for _ in range(number):
+        vector = [random.random() for _ in range(2)]
+        target = -1
+
+        if vector[0] < 0.5 and vector[1] < 0.5:
+            target = 0
+        elif vector[0] >= 0.5 > vector[1]:
+            target = 1
+        elif vector[0] < 0.5 <= vector[1]:
+            target = 2
+        else:
+            target = 3
+
+        x = airs.classify_pattern(vector)
+        if x == target:
+            correct += 1
+    return correct / number
+
 
 if __name__ == '__main__':
-    train_AIRS()
+    # airs = AIRS(cells_number=5)
+    # train_AIRS(airs=airs)
+    c = Cell(target=1)
+    c.stimulate([0.1, 0.1])
+    print(c.array)
+    print(c.affinity)
+    print(c.target)
+    clones = c.get_clones()
+    print(clones)
+    for ce in clones:
+        ce.stimulate(pattern=[0.1, 0.1])
+    print([a.mutate() for a in clones])
+    print(c.array)
