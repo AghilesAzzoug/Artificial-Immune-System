@@ -1,19 +1,34 @@
+"""
+Implementation of AIRS2 (Artificial Immune Recognition System V2) applied to the IRIS data set
+@author : Azzoug Aghiles
+"""
+
 import math
 import random
-
-ARRAY_SIZE = 4  # Features number
-MAX_ITER = 5
-mapping = {"Iris-setosa": 0, "Iris-versicolor": 1, "Iris-virginica": 2}
-reverseMapping = {0: "Iris-setosa", 1: "Iris-versicolor", 2: "Iris-virginica"}
+import time
 
 
 class AIRS:
-    def __init__(self, hyper_clonal_rate, clonal_rate, targets_number, mc_init_rate,
+    """AIRS (Artificial Immune Recognition System) class
+    Main class for this algorithm
+    Params:
+        hyper_clonal_rate (float) : Define the number of clones an ARB is allowed to produce
+        clonal_rate (float) : Define the number of ressources an ARB can obtain
+        class_number (int) : The number of classes (3 in this case)
+        mc_init_rate (float) : Define the number of training data to be copied in memory cells
+        total_num_resources (float) : The total numbers of resources to share between ARBs
+        affinity_threshold_scalar  (float) : Give a cut-off value for cell replacement
+        k (int) : The number of memory cells to use for classification
+        test_size (float) : The percentage of global data to take as test data
+
+    """
+
+    def __init__(self, hyper_clonal_rate, clonal_rate, class_number, mc_init_rate,
                  total_num_resources, affinity_threshold_scalar, k, test_size):
         self.HYPER_CLONAL_RATE = hyper_clonal_rate
         self.CLONAL_RATE = clonal_rate
         self.AFFINITY_THRESHOLD = 0
-        self.TARGETS_NUMBER = targets_number
+        self.CLASS_NUMBER = class_number
         self.MC_INIT_RATE = mc_init_rate
         self.TOTAL_NUM_RESOURCES = total_num_resources
         self.AFFINITY_THRESHOLD_SCALAR = affinity_threshold_scalar
@@ -24,6 +39,12 @@ class AIRS:
 
     @staticmethod
     def affinity(vector1, vector2):
+        """Compute the affinity (distance) between two features vectors
+        :param vector1: First features vector
+        :param vector2: Second features vector
+        :return: The affinity between the two vectors
+        """
+
         _MAX_DISTANCE = 10.91
         d = 0
         for i, j in zip(vector1, vector2):
@@ -34,31 +55,7 @@ class AIRS:
         with open("iris.data", "r") as data:
             content = data.readlines()
             ret = [([float(x.split(",")[i]) for i in range(4)], mapping[x.split(",")[4][:-1]]) for x in content]
-            min1 = 100
-            min2 = 100
-            min3 = 100
-            max1 = 0
-            max2 = 0
-            max3 = 0
-            for x in ret:
-                if x[0][0] < min1:
-                    min1 = x[0][0]
-                if x[0][0] > max1:
-                    max1 = x[0][0]
-
-                if x[0][1] < min2:
-                    min2 = x[0][1]
-                if x[0][1] > max2:
-                    max2 = x[0][1]
-
-                if x[0][2] < min3:
-                    min3 = x[0][2]
-                if x[0][0] > max3:
-                    max3 = x[0][2]
             random.shuffle(ret)
-
-            print(str(min1) + " " + str(min2) + " " + str(min3) + " " + str(max1) + " " + str(max2) + " " + str(max3))
-        # return [([1, 1], 1), ([0.1, 0.1], 0), ([0.9, 0.95], 1), ([0, 0], 0), ([0.11, 0.11], 0)]
         return ret[:int((1 - self.TEST_SIZE) * len(ret))], ret[int((1 - self.TEST_SIZE) * len(ret)):]
 
     def calculate_affinity_threshold(self):
@@ -71,57 +68,66 @@ class AIRS:
         self.AFFINITY_THRESHOLD = affinity_threshold / (len(train_set) * (len(train_set) - 1) / 2)
 
     def init_MC(self, train_set, MC):
+        """ Init the memory set pool
+        :param train_set: the training set
+        :param MC: The memory set pool
+        """
         for _ in range(int(len(train_set) * self.MC_INIT_RATE)):
             seed_cell = random.choice(train_set)
-            print(seed_cell)
-            print(seed_cell[1])
-            print(seed_cell[0])
 
-            MC[seed_cell[1]].append(Cell(vector=seed_cell[0], target=seed_cell[1]))
+            MC[seed_cell[1]].append(Cell(vector=seed_cell[0], _class=seed_cell[1]))
 
-    def argminARB(self, AB, target):
+    def argminARB(self, AB, _class):
+        """Get the ARB with the minimum amount of resources
+        :param AB: The Artificial Recognition Balls set
+        :param _class: the class of the ARBs
+        :return: The ARB with the lower amount of resources and its index
+        """
         minRes = 1.0
         ab = None
         abIndex = None
-        for i in range(len(AB[target])):
-            if AB[target][i].resources <= minRes:
-                minRes = AB[target][i].resources
-                ab = AB[target][i]
+        for i in range(len(AB[_class])):
+            if AB[_class][i].resources <= minRes:
+                minRes = AB[_class][i].resources
+                ab = AB[_class][i]
                 abIndex = i
 
         return ab, abIndex
 
-    def getMcCandidate(self, AB, target):
+    def getMcCandidate(self, AB, _class):
+        """Get the higher stimulation ARB to be (eventually) added to the memory cells pool
+        :param AB: The Artificial Recognition Balls set
+        :param _class: the class of the ARBs
+        :return: Higher stimulation ARB of the given class
+        """
         maxStim = 0.0
         ab = None
-        for i in range(len(AB[target])):
-            if AB[target][i].stimulation >= maxStim:
-                maxStim = AB[target][i].stimulation
-                ab = AB[target][i]
-        c = Cell(vector=ab.vector, target=ab.target)
+        for i in range(len(AB[_class])):
+            if AB[_class][i].stimulation >= maxStim:
+                maxStim = AB[_class][i].stimulation
+                ab = AB[_class][i]
+        c = Cell(vector=ab.vector, _class=ab._class)
         c.stimulation = ab.stimulation
         return c
 
     def train(self):
+        """Training method"""
+        start = time.time()
         train_set, test_set = self.train_test_split()
 
         self.calculate_affinity_threshold()
-        print("Aff thresh " + str(self.AFFINITY_THRESHOLD))
-        MC = {target: [] for target in range(self.TARGETS_NUMBER)}
-        AB = {target: [] for target in range(self.TARGETS_NUMBER)}
+        MC = {_class: [] for _class in range(self.CLASS_NUMBER)}
+        AB = {_class: [] for _class in range(self.CLASS_NUMBER)}
 
         # MC Initialisation
         self.init_MC(train_set, MC)
 
         for antigene, _class in train_set:
-            print("\n\n-------------------------------------- ")
-            print("MC : " + str(MC))
-            print("Antigene = " + str(antigene))
-            print("Class = " + str(_class))
+
             # MC Identification
             mc_match = None
             if len(MC[_class]) == 0:
-                mc_match = Cell(vector=antigene, target=_class)
+                mc_match = Cell(vector=antigene, _class=_class)
                 MC[_class].append(mc_match)
             else:
                 best_stim = 0
@@ -131,16 +137,13 @@ class AIRS:
                         mc_match = c
 
             # ARB Generation
-            AB[_class].append(ARB(vector=mc_match.vector, target=mc_match.target))  # add the mc_match to ARBs
-            print("Mc_ match " + str(mc_match))
+            AB[_class].append(ARB(vector=mc_match.vector, _class=mc_match._class))  # add the mc_match to ARBs
             stim = mc_match.stimulate(antigene)
 
             iterations = 0
             while True:
                 iterations += 1
-                print("Stim = " + str(stim))
                 MAX_CLONES = int(self.HYPER_CLONAL_RATE * self.CLONAL_RATE * stim)
-                print("Max Clones " + str(MAX_CLONES))
                 num_clones = 0
                 while num_clones < MAX_CLONES:
                     clone, mutated = mc_match.mutate()
@@ -148,14 +151,9 @@ class AIRS:
                     if mutated:
                         AB[_class].append(clone)
                         num_clones += 1
-                print("AB size : " + str(len(AB[0]) + len(AB[1])))
-                print("AB : " + str(AB))
 
                 # Competition for resources
-
                 avgStim = sum([x.stimulate(antigene) for x in AB[_class]]) / len(AB[_class])
-
-                print("Average Stim = " + str(avgStim))
 
                 MIN_STIM = 1.0
                 MAX_STIM = 0.0
@@ -167,20 +165,17 @@ class AIRS:
                             MIN_STIM = stim
                         if stim > MAX_STIM:
                             MAX_STIM = stim
-                print("Res ! ")
+
                 for c in AB.keys():
                     for ab in AB.get(c):
                         ab.stimulation = (ab.stimulation - MIN_STIM) / (MAX_STIM - MIN_STIM)
                         ab.resources = ab.stimulation * self.CLONAL_RATE
-                        print("heey " + str(ab))
 
                 resAlloc = sum([x.resources for x in AB[_class]])
-                print("Res alloc = " + str(resAlloc))
                 numResAllowed = self.TOTAL_NUM_RESOURCES
                 while resAlloc > numResAllowed:
                     numResRemove = resAlloc - numResAllowed
-                    abRemove, abRemoveIndex = self.argminARB(AB=AB, target=_class)
-                    print("Rem1 " + str(abRemove))
+                    abRemove, abRemoveIndex = self.argminARB(AB=AB, _class=_class)
                     if abRemove.resources <= numResRemove:
                         AB[_class].remove(abRemove)
                         resAlloc -= abRemove.resources
@@ -189,13 +184,9 @@ class AIRS:
                         resAlloc -= numResRemove
 
                 if (avgStim > self.AFFINITY_THRESHOLD) or (iterations >= MAX_ITER):
-                    print("MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAX")
                     break
 
-            print("AB[_class] = " + str(AB[_class]))
-            mc_candidate = self.getMcCandidate(AB=AB, target=_class)
-            print("Candidate = " + str(mc_candidate))
-            print("Mc match == " + str(mc_match))
+            mc_candidate = self.getMcCandidate(AB=AB, _class=_class)
 
             if mc_candidate.stimulation > mc_match.stimulation:
                 if AIRS.affinity(mc_candidate.vector,
@@ -204,8 +195,7 @@ class AIRS:
                     MC[_class].remove(mc_match)
                 # Add the mc_match to MC pool
                 MC[_class].append(mc_candidate)
-            print("MC == " + str(MC))
-        print("MC SIZE = " + str(len(MC[0]) + len(MC[1]) + len(MC[2])))
+
         self.MC = MC
         self.AB = AB
 
@@ -214,7 +204,9 @@ class AIRS:
             if self.classify(ag) == reverseMapping[_class]:
                 n_correct += 1
 
-        print("Accuracy : {}".format(n_correct / len(test_set)))
+        print("Execution time : {:2.4f} seconds".format(time.time() - start))
+        print("Accuracy : {:2.2f} %".format(n_correct * 100 / len(test_set)))
+        return n_correct / len(test_set)
 
     def classify(self, antigene):
         if (self.MC is None) or (self.AB is None):
@@ -230,34 +222,40 @@ class AIRS:
         v = {0: 0, 1: 0, 2: 0}
         self.K = min(self.K, len(vote_array))
         for x in vote_array[:self.K]:
-            v[x.target] += 1
+            v[x._class] += 1
 
         maxVote = 0
-        target = 0
+        _class = 0
         for x in v.keys():
             if v[x] > maxVote:
                 maxVote = v[x]
-                target = x
-        return reverseMapping[target]
+                _class = x
+        return reverseMapping[_class]
 
 
 class ARB:
-    def __init__(self, vector=None, target=None):
+    """ARB (Artificial Recognition Ball) class
+    Args:
+        vector (list) : list of features
+        _class (integer) : the class of the previous features
+    """
+
+    def __init__(self, vector=None, _class=None):
         if vector is None:
             self.vector = [random.random() for _ in range(ARRAY_SIZE)]
         else:
             self.vector = vector
-        self.target = target
+        self._class = _class
         self.stimulation = float('inf')
         self.resources = 0
 
     def __str__(self):
-        return "Vector = " + str(self.vector) + " | target = " + str(self.target) + " | stim = " + str(
-            self.stimulation) + " | res = " + str(self.resources)
+        return "ARB : Vector = {} | class = {} | stim = {} | res = {}".format(self.vector, self._class,
+                                                                              self.stimulation, self.resources)
 
     def __repr__(self):
-        return "Vector = " + str(self.vector) + " | target = " + str(self.target) + " | stim = " + str(
-            self.stimulation) + " | res = " + str(self.resources)
+        return "ARB : Vector = {} | class = {} | stim = {} | res = {}".format(self.vector, self._class,
+                                                                              self.stimulation, self.resources)
 
     def stimulate(self, pattern):
         self.stimulation = 1 - AIRS.affinity(vector1=pattern, vector2=self.vector)
@@ -269,7 +267,6 @@ class ARB:
         new_vector = []
 
         for v in self.vector:
-            print(v)
             change = random.random()
             change_to = 7 * random.random() + 0.1
 
@@ -279,25 +276,29 @@ class ARB:
             else:
                 new_vector.append(v)
 
-        return ARB(vector=new_vector, target=self.target), mutated
+        return ARB(vector=new_vector, _class=self._class), mutated
 
 
 class Cell:
-    def __init__(self, vector=None, target=None):
+    """Cell class
+    Args:
+        vector (list) : list of features
+        _class (integer) : the class of the previous features
+    """
+
+    def __init__(self, vector=None, _class=None):
         if vector is None:
             self.vector = [random.random() for _ in range(ARRAY_SIZE)]
         else:
             self.vector = vector
-        self.target = target
+        self._class = _class
         self.stimulation = float('inf')
 
     def __str__(self):
-        return "Cell : Vector = " + str(self.vector) + " | target = " + str(self.target) + " | stim = " + str(
-            self.stimulation)
+        return "Cell : Vector = {} | class = {} | stim = {}".format(self.vector, self._class, self.stimulation)
 
     def __repr__(self):
-        return "Cell : Vector = " + str(self.vector) + " | target = " + str(self.target) + " | stim = " + str(
-            self.stimulation)
+        return "Cell : Vector = {} | class = {} | stim = {}".format(self.vector, self._class, self.stimulation)
 
     def stimulate(self, pattern):
         self.stimulation = 1 - AIRS.affinity(vector1=pattern, vector2=self.vector)
@@ -318,16 +319,26 @@ class Cell:
             else:
                 new_vector.append(v)
 
-        return ARB(vector=new_vector, target=self.target), mutated
+        return ARB(vector=new_vector, _class=self._class), mutated
 
 
 if __name__ == '__main__':
     # 6.3,2.3,4.4,1.3,Iris-versicolor
     # 5.1, 2.5, 3.0, 1.1, Iris - versicolor
     # 6.9,3.1,5.1,2.3,Iris-virginica
+
+    ARRAY_SIZE = 4  # Features number
+    MAX_ITER = 5  # Max iterations to stop training on a given antigene
+
+    # Mapping classes to integers
+
+    mapping = {"Iris-setosa": 0, "Iris-versicolor": 1, "Iris-virginica": 2}
+    reverseMapping = {0: "Iris-setosa", 1: "Iris-versicolor", 2: "Iris-virginica"}
+
+    # Mutation rate for ARBs
     MUTATION_RATE = 0.2
-    airs = AIRS(hyper_clonal_rate=20, clonal_rate=0.8, targets_number=3, mc_init_rate=0.5,
+
+    airs = AIRS(hyper_clonal_rate=20, clonal_rate=0.8, class_number=3, mc_init_rate=0.4,
                 total_num_resources=10, affinity_threshold_scalar=0.8, k=6, test_size=0.4)
 
-    print(airs.train_test_split())
     airs.train()
