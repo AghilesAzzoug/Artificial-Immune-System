@@ -38,7 +38,7 @@ With this parameters :
     * Total Num Resources : 10
     * Affinity Threshold Scalar : 0.8
     * K : 6
-    * Test Size : 0.6
+    * Test Size : 0.4
 ```
 
 # Output Example
