@@ -15,13 +15,14 @@
 
 # Algorithm parameters
     * Hyper Clonal Rate : Define the number of clones an ARB is allowed to produce
-    * Clonal Rate : Define the number of ressources an ARB can obtain
+    * Clonal Rate : Define the number of ressources an ARB can obtain and used also to determine the number of clones allowed to produce
     * Class Number : The number of classes (3 in this case)
     * Mc Init Rate : Define the number of training data to be copied in memory cells 
-    * Total Num Resources : The total numbers of resources to share between ARBs
+    * Total Num Resources : The total number of resources to share between ARBs
     * Affinity Threshold Scalar : Give a cut-off value for cell replacement
     * K : The number of memory cells to use for classification
     * Test Size : The percentage of global data to take as test data
+    * Mutation rate : The probability for a feature (in any given antigene) to mutate
     
 # Accuracy
 Mean accuracy after 1000 executions is : ``` 92.54 %```
@@ -39,6 +40,7 @@ With this parameters :
     * Affinity Threshold Scalar : 0.8
     * K : 6
     * Test Size : 0.4
+    * Mutation rate : 0.2
 ```
 
 # Output Example
