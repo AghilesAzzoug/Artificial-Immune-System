@@ -1,5 +1,5 @@
 # Artificial Immune Recognition System V2
-# AIRS2
+# AIRS2 Algorithm
 
 # What does it do?
 * Classifying irises (Flowers)
@@ -10,7 +10,7 @@
     * Memory cell (MC) identification
     * ARB generation 
     * Competition for resources
-    * (Potential) Candidate memory introduction of the set of Cells 
+    * (Potential) Candidate memory introduction to the set of Cells 
     * K-Nearest Neighbor approach for classification
 
 # Algorithm parameters
