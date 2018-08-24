@@ -5,7 +5,7 @@
 * Classifying irises (Flowers)
 
 # How?
-* Using the artificial immune recognition system 2 
+* Using the artificial immune recognition system algorithm v2
     * Initialization
     * Memory cell (MC) identification
     * ARB generation 
