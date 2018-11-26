@@ -39,17 +39,18 @@ class AIRS:
 
     @staticmethod
     def affinity(vector1, vector2):
-        """Compute the affinity (distance) between two features vectors
+        """Compute the affinity (Normalized !! distance) between two features vectors
         :param vector1: First features vector
         :param vector2: Second features vector
-        :return: The affinity between the two vectors
+        :return: The affinity between the two vectors [0-1]
         """
 
-        _MAX_DISTANCE = 10.91
+        euclidian_distance = 0
         d = 0
         for i, j in zip(vector1, vector2):
             d += (i - j) ** 2
-        return math.sqrt(d) / _MAX_DISTANCE
+        euclidian_distance = math.sqrt(d)
+        return euclidian_distance / (1 + euclidian_distance)
 
     def train_test_split(self):
         with open("iris.data", "r") as data:
