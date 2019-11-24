@@ -1,5 +1,9 @@
 """
 Implementation of AIRS2 (Artificial Immune Recognition System V2) applied to the IRIS data set
+Some constants are hardcoded, this code was intended to TEST the algorithm AIRS2 on IRIS data.
+
+If you have any question, suggestion, feel free to ask at ea_azzoug@esi.dz
+
 @author : Azzoug Aghiles
 """
 
@@ -45,7 +49,6 @@ class AIRS:
         :return: The affinity between the two vectors [0-1]
         """
 
-        euclidian_distance = 0
         d = 0
         for i, j in zip(vector1, vector2):
             d += (i - j) ** 2
@@ -205,8 +208,8 @@ class AIRS:
             if self.classify(ag) == reverseMapping[_class]:
                 n_correct += 1
 
-        print("Execution time : {:2.4f} seconds".format(time.time() - start))
-        print("Accuracy : {:2.2f} %".format(n_correct * 100 / len(test_set)))
+        # print("Execution time : {:2.4f} seconds".format(time.time() - start))
+        # print("Accuracy : {:2.2f} %".format(n_correct * 100 / len(test_set)))
         return n_correct / len(test_set)
 
     def classify(self, antigene):
@@ -267,16 +270,19 @@ class ARB:
         mutated = False
         new_vector = []
 
-        for v in self.vector:
-            change = random.random()
-            change_to = 7 * random.random() + 0.1
+        # hardcoded min, max values for each feature
+        min_features = [4.3, 2.0, 1.0, 0.1]
+        max_features = [7.9, 4.4, 6.9, 2.5]
 
-            if change <= AIRS.MUTATION_RATE:
+        for idx, v in enumerate(self.vector):
+            change = random.random()
+            change_to = random.uniform(min_features[idx], max_features[idx])
+
+            if change <= MUTATION_RATE:
                 new_vector.append(change_to)
                 mutated = True
             else:
                 new_vector.append(v)
-
         return ARB(vector=new_vector, _class=self._class), mutated
 
 
@@ -310,24 +316,23 @@ class Cell:
         mutated = False
         new_vector = []
 
-        for v in self.vector:
+        # hardcoded min, max values for each feature
+        min_features = [4.3, 2.0, 1.0, 0.1]
+        max_features = [7.9, 4.4, 6.9, 2.5]
+
+        for idx, v in enumerate(self.vector):
             change = random.random()
-            change_to = random.random()
+            change_to = random.uniform(min_features[idx], max_features[idx])
 
             if change <= MUTATION_RATE:
                 new_vector.append(change_to)
                 mutated = True
             else:
                 new_vector.append(v)
-
-        return ARB(vector=new_vector, _class=self._class), mutated
+        return Cell(vector=new_vector, _class=self._class), mutated
 
 
 if __name__ == '__main__':
-    # 6.3,2.3,4.4,1.3,Iris-versicolor
-    # 5.1, 2.5, 3.0, 1.1, Iris - versicolor
-    # 6.9,3.1,5.1,2.3,Iris-virginica
-
     ARRAY_SIZE = 4  # Features number
     MAX_ITER = 5  # Max iterations to stop training on a given antigene
 
@@ -337,6 +342,7 @@ if __name__ == '__main__':
     reverseMapping = {0: "Iris-setosa", 1: "Iris-versicolor", 2: "Iris-virginica"}
 
     # Mutation rate for ARBs
+    # todo: pretty bad implementation, structure it.
     MUTATION_RATE = 0.2
 
     airs = AIRS(hyper_clonal_rate=20, clonal_rate=0.8, class_number=3, mc_init_rate=0.4,
