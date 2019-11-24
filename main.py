@@ -340,6 +340,6 @@ if __name__ == '__main__':
     MUTATION_RATE = 0.2
 
     airs = AIRS(hyper_clonal_rate=20, clonal_rate=0.8, class_number=3, mc_init_rate=0.4,
-                total_num_resources=10, affinity_threshold_scalar=0.8, k=6, test_size=0.4)
+                total_num_resources=10, affinity_threshold_scalar=0.8, k=3, test_size=0.4)
 
     airs.train()
