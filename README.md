@@ -25,7 +25,7 @@
     * Mutation rate : The probability for a feature (in any given antigene) to mutate
     
 # Accuracy
-Mean accuracy after 1000 executions is : ``` 92.54 %```
+Mean accuracy after 1000 executions is : ``` 93,78 %```
 
 In ``` 44.06 seconds```
 
@@ -38,7 +38,7 @@ With this parameters :
     * Mc Init Rate : 0.4 
     * Total Num Resources : 10
     * Affinity Threshold Scalar : 0.8
-    * K : 6
+    * K : 3
     * Test Size : 0.4
     * Mutation rate : 0.2
 ```
