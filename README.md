@@ -54,7 +54,7 @@ The algorithm is kind-of a mix between KNearestNeighbors and Genetic Algorithms.
 The picture below shows the separation and the shape of data point using T-SNE representation. The algorithm tends to 
 generate new points to better represent the data and remove outliers (points from a certain class located in other ones).
 
-![alt text](https://github.com/AghilesAzzoug/Artificial-Immune-System/blob/master/tsne.png)
+![alt text](https://github.com/AghilesAzzoug/Artificial-Immune-System/blob/master/tsne_img.png)
  
 
 # Requirements
