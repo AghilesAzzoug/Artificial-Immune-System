@@ -276,6 +276,7 @@ class ARB:
 
         for idx, v in enumerate(self.vector):
             change = random.random()
+            # could have been something like min_features[idx]*(1 - some-percentage) and max_features[idx] * (1 + some-percentage)
             change_to = random.uniform(min_features[idx], max_features[idx])
 
             if change <= MUTATION_RATE:
