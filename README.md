@@ -49,7 +49,18 @@ Execution time : 0.0389 seconds
 Accuracy : 98.33 %
 ``` 
 
+# Some notes 
+The algorithm is kind-of a mix between KNearestNeighbors and Genetic Algorithms. The MC cells that are used for final 
+classification tend better represent the data, by choosing data points that are closer to their true classes.
+(the true distribution).
+The picture below shows the separation and the shape of data point using T-SNE representation. The algorithm tends to 
+generate new points to better represent the data and remove outliers (points from a certain class located in other ones).
+
+![alt text](https://github.com/AghilesAzzoug/Artificial-Immune-System/blob/master/tsne.png)
+ 
+
 # Requirements
 
 * Python >= 3
+
 
