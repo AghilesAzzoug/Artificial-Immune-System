@@ -11,7 +11,7 @@
     * ARB generation 
     * Competition for resources
     * (Potential) Candidate memory introduction to the set of Cells 
-    * K-Nearest Neighbor approach for classification
+    * K-Nearest Neighbors approach for classification
 
 # Algorithm parameters
     * Hyper Clonal Rate : Define the number of clones an ARB is allowed to produce
