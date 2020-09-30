@@ -56,6 +56,7 @@ class AIRS:
         return euclidian_distance / (1 + euclidian_distance)
 
     def train_test_split(self):
+        random.seed(SEED)
         with open("iris.data", "r") as data:
             content = data.readlines()
             ret = [([float(x.split(",")[i]) for i in range(4)], mapping[x.split(",")[4][:-1]]) for x in content]
@@ -136,7 +137,7 @@ class AIRS:
             else:
                 best_stim = 0
                 for c in MC[_class]:
-                    if c.stimulation >= best_stim:
+                    if c.stimulate(antigene) >= best_stim:
                         best_stim = c.stimulation
                         mc_match = c
 
@@ -336,6 +337,7 @@ class Cell:
 if __name__ == '__main__':
     ARRAY_SIZE = 4  # Features number
     MAX_ITER = 5  # Max iterations to stop training on a given antigene
+    SEED = 0    # Fixed seed to use the same random numbers in different calls
 
     # Mapping classes to integers
 
@@ -349,4 +351,4 @@ if __name__ == '__main__':
     airs = AIRS(hyper_clonal_rate=20, clonal_rate=0.8, class_number=3, mc_init_rate=0.4,
                 total_num_resources=10, affinity_threshold_scalar=0.8, k=3, test_size=0.4)
 
-    airs.train()
+    print(airs.train())
