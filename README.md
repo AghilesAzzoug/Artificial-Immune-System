@@ -1,4 +1,7 @@
 # Artificial Immune Recognition System V2
+Based on `Watkins, Andrew & Timmis, Jon. (2002). Artificial Immune Recognition System (AIRS): Revisions and Refinements`.
+
+See this [link](https://www.researchgate.net/publication/228811231_Artificial_Immune_Recognition_System_AIRS_Revisions_and_Refinements) for the paper.
 # AIRS2 Algorithm
 
 # What does it do?
@@ -31,7 +34,7 @@ In ``` 44.06 seconds```
 
 Using ```Intel i7-6700HQ CPU```
 
-With this parameters :
+With the following parameters:
 ```
     * Hyper Clonal Rate : 20
     * Clonal Rate : 0.8
@@ -55,6 +58,7 @@ The picture below shows the separation and the shape of data point using T-SNE r
 generate new points to better represent the data and remove outliers (points from a certain class located in other ones).
 
 ![alt text](https://github.com/AghilesAzzoug/Artificial-Immune-System/blob/master/tsne_img.png)
+
  
 
 # Requirements
